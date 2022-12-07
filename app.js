@@ -67,7 +67,8 @@ const syncRoster = async () => {
 			broadcast: user.flag_broadcastOptedIn,
 			member: true,
 			vis: (user.membership === 'home') ? false : true,
-			roleCodes: (user.membership === 'home') ? assignableRoles : []
+			roleCodes: (user.membership === 'home') ? assignableRoles : [],
+			createdAt: user.facility_join
 		}
 
 		await zabApi.post(`/controller/${user.cid}`, userData);
