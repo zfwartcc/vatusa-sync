@@ -35,6 +35,7 @@ const syncRoster = async () => {
 	const vatusaVisitingControllers = vatusaData.data.filter(c => c.membership !== 'home').map(c => c.cid); // only membership: !home
 
 	const toBeAdded = vatusaControllers.filter(cid => !zabControllers.includes(cid));
+	const toBeChecked = zabControllers;
 	const makeNonMember = zabMembers.filter(cid => !vatusaControllers.includes(cid));
 	const makeMember = zabNonMembers.filter(cid => vatusaControllers.includes(cid));
 	const makeVisitor = zabHomeControllers.filter(cid => vatusaVisitingControllers.includes(cid));
@@ -72,6 +73,10 @@ const syncRoster = async () => {
 		}
 
 		await zabApi.post(`/controller/${user.cid}`, userData);
+	}
+	for (const cid of vatusaControllers){
+		const user = vatusaObject[cid];
+		await zabApi.put(`/controller/${cid}/rating`, {rating: user.rating});
 	}
 
 	for (const cid of makeMember) {
