@@ -58,7 +58,7 @@ const syncRoster = async () => {
 
 		const assignableRoles = user.roles.filter(role => availableRoles.includes(role.role.toLowerCase())).map(role => role.role.toLowerCase());
 
-		const userData = {
+		let userData = {
 			fname: user.fname,
 			lname: user.lname,
 			cid: user.cid,
@@ -68,10 +68,37 @@ const syncRoster = async () => {
 			broadcast: user.flag_broadcastOptedIn,
 			member: true,
 			vis: (user.membership === 'home') ? false : true,
+			certCodes: [],
 			roleCodes: (user.membership === 'home') ? assignableRoles : [],
 			createdAt: user.facility_join
 		}
+		if(user.rating_short === 'ADM' || user.rating_short === 'SUP' || user.rating_short === 'I3' || user.rating_short === 'I1' || user.rating_short === 'C3' || user.rating_short === 'C1') {
+			userData = {
+				...userData,
+				certCodes: ["del", "gnd", "twr", "app"],
 
+			}
+
+
+		}else if(user.rating_short === 'S3'){
+			userData = {
+				...userData,
+				certCodes: ["del", "gnd", "twr", "app"],
+
+			}
+		}else if(user.rating_short === 'S2'){
+			userData = {
+				...userData,
+				certCodes: ["del", "gnd", "twr"],
+
+			}
+		}else if(user.rating_short === 'S1'){
+			userData = {
+				...userData,
+				certCodes: ["del", "gnd"],
+
+			}
+		}
 		await zabApi.post(`/controller/${user.cid}`, userData);
 	}
 	for (const cid of vatusaControllers){
@@ -84,11 +111,41 @@ const syncRoster = async () => {
 	}
 
 	for (const cid of makeNonMember) {
+		
 		await zabApi.put(`/controller/${cid}/member`, {member: false});
 	}
 
 	for (const cid of makeVisitor) {
-		await zabApi.put(`/controller/${cid}/visit`, {vis: true});
+		let user = vatusaObject[cid]
+		let rolec = {
+			certCodes: [],
+			vis: true,
+		}
+		if(user.rating_short === 'ADM' || user.rating_short === 'SUP' || user.rating_short === 'I3' || user.rating_short === 'I1' || user.rating_short === 'C3' || user.rating_short === 'C1') {
+			rolec = {
+				certCodes: ["del", "gnd", "twr", "app"],
+				vis: true,
+			}
+
+
+		}else if(user.rating_short === 'S3'){
+			rolec = {
+				certCodes: ["del", "gnd", "twr", "app"],
+				vis: true,
+			}
+		}else if(user.rating_short === 'S2'){
+			rolec = {
+				certCodes: ["del", "gnd", "twr"],
+				vis: true,
+			}
+		}else if(user.rating_short === 'S1'){
+			rolec = {
+				certCodes: ["del", "gnd"],
+				vis: true,
+			}
+		}
+
+		await zabApi.put(`/controller/${cid}/visit`, {certCodes: rolec.certCodes, vis: rolec.vis});
 	}
 
 	for (const cid of makeHome) {
